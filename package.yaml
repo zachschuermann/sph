@@ -1,10 +1,10 @@
 name:                sph
 version:             0.1.0.0
-github:              "githubuser/sph"
+github:              "schuermannator/sph"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2019 Author name here"
+author:              "Zach Schuermann"
+maintainer:          "zachary.zvs@gmail.com"
+copyright:           "2019 Zachary Schuermann"
 
 extra-source-files:
 - README.md
@@ -21,6 +21,7 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- GLUT
 
 library:
   source-dirs: src
