@@ -1,6 +1,7 @@
 module Display (display, idle) where
 import Solver (update)
 import Lib
+import Linear.V2
 import Graphics.UI.GLUT
 import Data.IORef
 
@@ -34,9 +35,8 @@ getPoints ps = map getPoint ps
 
 getPoint :: Particle -> (Float, Float)
 getPoint (Particle p _ _ _ _) = parse p
-  where parse (GLPoint x y) = (x, y)
--- getPoint _ = (1.0, 1.0)
-          
+  where parse (V2 x y) = (realToFrac x, realToFrac y)
+
 -- idle :: IORef [(GLfloat, GLfloat)] -> IdleCallback
 idle :: IORef [Particle] -> IdleCallback
 idle ps = do

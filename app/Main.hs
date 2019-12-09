@@ -2,6 +2,7 @@ module Main where
 import Display (display, idle)
 import Lib
 import Graphics.UI.GLUT
+import Linear.V2
 import System.Exit
 import Data.IORef
 
@@ -39,7 +40,7 @@ keyboard key keyState _ _ = do
       (Char '\27', Down) -> exitWith ExitSuccess
       (_, _) -> return ()
 
-makeParticles :: [(Float, Float)] -> [Particle]
+makeParticles :: [(Double, Double)] -> [Particle]
 makeParticles pts = map maker pts
-  where maker :: (Float, Float) -> Particle
-        maker (x, y) = Particle (GLPoint x y) (Vector 0 0) (Vector 0 0) 0 0
+  where maker :: (Double, Double) -> Particle
+        maker (x, y) = Particle (V2 x y) (V2 0 0) (V2 0 0) 0 0
