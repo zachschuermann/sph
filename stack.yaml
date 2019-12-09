@@ -40,6 +40,9 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 # extra-deps: []
+ghc-options:
+  "$locals": -Wall
+  "$targets": -Wall
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

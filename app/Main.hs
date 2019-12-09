@@ -5,25 +5,27 @@ import Graphics.UI.GLUT
 import System.Exit
 import Data.IORef
 
--- very helpful: https://wiki.haskell.org/OpenGLTutorial2
-
 main :: IO ()
 main = do
   (_progName, _args) <- getArgsAndInitialize
   initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer ]
   initialWindowSize $= Size 800 600
   _window <- createWindow "SPH"
-
+  reshapeCallback $= Just reshape
   init_
 
-  -- ps <- newIORef [(0.0, 0.0), (0.3, 0.0)]
-  -- ps <- makeParticles [(0.0, 0.0), (0.3, 0.0)]
-  ps <- newIORef [Particle (GLPoint 0.0 0.0) (Vector 1.0 1.0) (Vector 1.0 1.0) 10.1 11.1,
-                  Particle (GLPoint 0.0 0.2) (Vector 1.0 1.0) (Vector 1.0 1.0) 10.1 11.1]
+  -- ps <-
+  --ps <- newIORef [Particle (GLPoint 0.0 0.0) (Vector 1.0 1.0) (Vector 1.0 1.0) 10.1 11.1,
+   --               Particle (GLPoint 0.2 0.0) (Vector 1.0 1.0) (Vector 1.0 1.0) 10.1 11.1]
+  ps <- newIORef $ makeParticles [(0.0, 0.0), (0.2, 0.0)]
   displayCallback $= display ps
   idleCallback $= Just (idle ps)
   keyboardMouseCallback $= Just (keyboard)
   mainLoop
+
+reshape :: ReshapeCallback
+reshape size = do
+  viewport $= (Position 0 0, size)
 
 init_ :: IO ()
 init_ = do
@@ -40,3 +42,7 @@ keyboard key keyState _ _ = do
       (Char '\27', Down) -> exitWith ExitSuccess
       (_, _) -> return ()
 
+makeParticles :: [(Float, Float)] -> [Particle]
+makeParticles pts = map maker pts
+  where maker :: (Float, Float) -> Particle
+        maker (x, y) = Particle (GLPoint x y) (Vector 0 0) (Vector 0 0) 0 0
