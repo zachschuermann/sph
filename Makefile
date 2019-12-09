@@ -5,3 +5,6 @@ sph:
 
 run: sph
 	stack exec sph-exe
+
+clean:
+	stack clean

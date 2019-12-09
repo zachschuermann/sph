@@ -15,7 +15,7 @@ main = do
   reshapeCallback $= Just reshape
   init_
 
-  ps <- newIORef $ makeParticles [(100, 100), (400, 400)]
+  ps <- newIORef $ makeParticles [(100, 100), (400, 600)]
   displayCallback $= display ps
   idleCallback $= Just (idle ps)
   keyboardMouseCallback $= Just (keyboard)

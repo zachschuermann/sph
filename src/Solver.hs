@@ -1,9 +1,7 @@
 module Solver (update) where
 import Lib
-import Graphics.UI.GLUT
 import Linear.V2
-import Linear.Metric (norm)
-import Data.IORef
+import Linear.Metric (norm, quadrance)
 
 g         = V2 0 (12000 * (-9.8)) -- 12000?
 rest_dens = 1000.0
@@ -28,16 +26,17 @@ view_width = 1.5*800.0;
 view_height = 1.5*600.0;
 
 update :: [Particle] -> [Particle]
-update = integrate . densityPressure . forces
+update = integrate . forces . densityPressure
+-- update = forces
 -- update ps = map incr ps
 --   where
 --     incr :: Particle -> Particle
 --     incr (Particle p v f d pr) = Particle (pp p) v f d pr
---       where pp (V2 x y) = V2 (x + 10) y
+--       where pp (V2 x y) = V2 (x + 1) y
 
 integrate :: [Particle] -> [Particle]
 integrate ps = map integrate_ ps
-   where integrate_ (Particle p v f d pr) = enforceBC $ Particle updateP updateV f d pr
+   where integrate_ (Particle p v f d pr) = Particle updateP updateV f d pr -- enforceBC $ Particle updateP updateV f d pr
            where updateP = p --p + dt * v
                  updateV = v --v + (dt * (f / (realToFrac d)))
 
@@ -69,16 +68,45 @@ enforceBC = bot . top . left . right
                   Particle (V2 px (view_height - eps)) (V2 vx (vy * bound_damping)) f' d' pr'
 
 densityPressure :: [Particle] -> [Particle]
-densityPressure = id
+densityPressure ps = map (calcDP ps) ps
+
+calcDP :: [Particle] -> Particle -> Particle
+calcDP ps pi'@(Particle pix piv pif pid pipr) = Particle pix piv pif newpid newpipr
+  where (newpid, newpipr) = folder $ map go ps
+          where go :: Particle -> (Double, Double)
+                go pj@(Particle pjx pjv pjf pjd pjpr)
+                  | r2 < hsq  = (pid + mass * poly6 * (hsq-r2)^3, pipr')
+                  | otherwise = (0, pipr')
+                  where pipr' = gas_const*(pid - rest_dens)
+                        r2 = quadrance (pjx - pix)
+                folder = foldl (\(ax, ay) (x, y) -> (ax + x, ay + y)) (0, 0)
 
 fGravity :: Double -> V2 Double
-fGravity dens = G * dens
+fGravity dens = g * (realToFrac dens)
 
 forces :: [Particle] -> [Particle]
-forces ps = map (calcForce ps) ps
-  where calcForce :: [Particle] -> Particle -> Particle
-        calcForce ps (Particle p v f d pr) = Particle p v newf d pr
-        where let fgrav = fGravity d in newf = fpress + fvisc + fgrav
-          where (fpress, fvisc) = sum $ map calcPV ps p
-                  where calcPV :: [Particles] -> Particle -> [(V2 Double, V2 Double)]
-                        calcPV ps' p' =
+forces ps = map (calcPV ps) ps
+-- forces ps = map (calcForce ps) ps
+--   where calcForce :: [Particle] -> Particle -> Particle
+--         calcForce ps pp@(Particle p v f d pr) = Particle p v newf d pr
+--         where let fgrav = fGravity d in newf = fpress + fvisc + fgrav
+--           where (fpress, fvisc) = sum $ map (calcPV pp) ps
+--                   where calcPV :: Particle -> Particle -> [(V2 Double, V2 Double)]
+--                         calcPV (Particle p' v' f' d' pr') (Particle p'' v'' f'' d'' pr'') =
+
+calcPV :: [Particle] -> Particle -> Particle
+calcPV ps pi'@(Particle pix piv pif pid pipr) = Particle pix piv (fpress + fvisc + fgrav) pid pipr
+  where
+    fgrav = fGravity pid
+    (fpress, fvisc) = folder $ map go ps
+          where go :: Particle -> (V2 Double, V2 Double)
+                go pj@(Particle pjx pjv pjf pjd pjpr)
+                  | pi' == pj = (V2 0 0, V2 0 0)
+                  | r < h     = (fpress', fvisc')
+                  | otherwise = (V2 0 0, V2 0 0)
+                  where fpress' = (-(pjx - pix)/(realToFrac r)*(realToFrac mass)*(realToFrac (pipr + pjpr)) /
+                                  (realToFrac (2.0 * pjd)) * realToFrac spiky_grad * (realToFrac (h-r))^2) -- TODO normallize
+                        fvisc' = visc * (realToFrac mass) * (pjv - piv) /
+                          (realToFrac pjd) * realToFrac visc_lap * realToFrac (h-r)
+                        r = norm (pjx - pix)
+                folder = foldl (\(ax, ay) (x, y) -> (ax + x, ay + y)) ((V2 0 0), (V2 0 0))
