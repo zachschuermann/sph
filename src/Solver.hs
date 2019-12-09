@@ -27,25 +27,19 @@ view_height = 1.5*600.0;
 
 update :: [Particle] -> [Particle]
 update = integrate . forces . densityPressure
--- update = forces
--- update ps = map incr ps
---   where
---     incr :: Particle -> Particle
---     incr (Particle p v f d pr) = Particle (pp p) v f d pr
---       where pp (V2 x y) = V2 (x + 1) y
 
 integrate :: [Particle] -> [Particle]
 integrate ps = map integrate_ ps
-   where integrate_ (Particle p v f d pr) = Particle updateP updateV f d pr -- enforceBC $ Particle updateP updateV f d pr
-           where updateP = p --p + dt * v
-                 updateV = v --v + (dt * (f / (realToFrac d)))
+   where integrate_ (Particle p v f d pr) = enforceBC $ Particle updateP updateV f d pr
+           where updateP = p + dt * v
+                 updateV = v + (dt * (f / (realToFrac d)))
 
 enforceBC :: Particle -> Particle
 enforceBC = bot . top . left . right
   where bot pa@(Particle p v f d pr)
           | check p = newp p v f d pr
           | otherwise  = pa
-          where check (V2 px _) = px - eps > 0.0
+          where check (V2 px _) = px - eps < 0.0
                 newp (V2 _ py) (V2 vx vy) f' d' pr' =
                   Particle (V2 eps py) (V2 (vx * bound_damping) vy) f' d' pr'
         top pa@(Particle p v f d pr)
@@ -86,13 +80,6 @@ fGravity dens = g * (realToFrac dens)
 
 forces :: [Particle] -> [Particle]
 forces ps = map (calcPV ps) ps
--- forces ps = map (calcForce ps) ps
---   where calcForce :: [Particle] -> Particle -> Particle
---         calcForce ps pp@(Particle p v f d pr) = Particle p v newf d pr
---         where let fgrav = fGravity d in newf = fpress + fvisc + fgrav
---           where (fpress, fvisc) = sum $ map (calcPV pp) ps
---                   where calcPV :: Particle -> Particle -> [(V2 Double, V2 Double)]
---                         calcPV (Particle p' v' f' d' pr') (Particle p'' v'' f'' d'' pr'') =
 
 calcPV :: [Particle] -> Particle -> Particle
 calcPV ps pi'@(Particle pix piv pif pid pipr) = Particle pix piv (fpress + fvisc + fgrav) pid pipr
@@ -105,7 +92,7 @@ calcPV ps pi'@(Particle pix piv pif pid pipr) = Particle pix piv (fpress + fvisc
                   | r < h     = (fpress', fvisc')
                   | otherwise = (V2 0 0, V2 0 0)
                   where fpress' = (-(pjx - pix)/(realToFrac r)*(realToFrac mass)*(realToFrac (pipr + pjpr)) /
-                                  (realToFrac (2.0 * pjd)) * realToFrac spiky_grad * (realToFrac (h-r))^2) -- TODO normallize
+                                  (realToFrac (2.0 * pjd)) * realToFrac spiky_grad * (realToFrac (h-r))^2)
                         fvisc' = visc * (realToFrac mass) * (pjv - piv) /
                           (realToFrac pjd) * realToFrac visc_lap * realToFrac (h-r)
                         r = norm (pjx - pix)
