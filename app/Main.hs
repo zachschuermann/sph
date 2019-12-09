@@ -6,6 +6,11 @@ import Linear.V2
 import System.Exit
 import Data.IORef
 
+window_width :: Integer
+window_height :: Integer
+window_width = 800;
+window_height = 600;
+
 main :: IO ()
 main = do
   (_progName, _args) <- getArgsAndInitialize

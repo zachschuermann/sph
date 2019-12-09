@@ -3,6 +3,22 @@ import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
 
+g :: V2 Double
+rest_dens :: Double
+gas_const :: Double
+h :: Double
+hsq :: Double
+mass :: Double
+visc :: V2 Double -- TODO fix
+dt :: V2 Double -- TODO fix
+poly6 :: Double
+spiky_grad :: Double
+visc_lap :: Double
+eps :: Double
+bound_damping :: Double
+view_width :: Double
+view_height :: Double
+
 g         = V2 0 (12000 * (-9.8)) -- 12000?
 rest_dens = 1000.0
 gas_const = 2000.0
@@ -10,19 +26,17 @@ h         = 16.0     -- kernel radius
 hsq       = h*h
 mass      = 65.0     -- assume all particles have the same mass
 visc      = 250.0    -- viscosity constant
-dt        = 0.0008
+dt        = 0.002
 
-poly6 = 315.0 / (65.0*pi*(h^9))
-spiky_grad = (-45.0) / (pi*h^6)
-visc_lap = 45.0 / (pi*h^6)
+poly6 = 315.0 / (65.0*pi*(h^(9 :: Int)))
+spiky_grad = (-45.0) / (pi*h^(6 :: Int))
+visc_lap = 45.0 / (pi*h^(6 :: Int))
 
 -- simulation parameters
 eps = h -- boundary epsilon
 bound_damping = (-0.5)
 
-window_width = 800;
-window_height = 600;
-view_width = 1.5*800.0;
+view_width = 1.5*800.0; -- TODO change to window width/height
 view_height = 1.5*600.0;
 
 update :: [Particle] -> [Particle]
@@ -65,11 +79,11 @@ densityPressure :: [Particle] -> [Particle]
 densityPressure ps = map (calcDP ps) ps
 
 calcDP :: [Particle] -> Particle -> Particle
-calcDP ps pi'@(Particle pix piv pif pid pipr) = Particle pix piv pif newpid newpipr
+calcDP ps (Particle pix piv pif pid _) = Particle pix piv pif newpid newpipr
   where (newpid, newpipr) = folder $ map go ps
           where go :: Particle -> (Double, Double)
-                go pj@(Particle pjx pjv pjf pjd pjpr)
-                  | r2 < hsq  = (pid + mass * poly6 * (hsq-r2)^3, pipr')
+                go (Particle pjx _ _ _ _)
+                  | r2 < hsq  = (pid + mass * poly6 * (hsq-r2)^(3 :: Int), pipr')
                   | otherwise = (0, pipr')
                   where pipr' = gas_const*(pid - rest_dens)
                         r2 = quadrance (pjx - pix)
@@ -82,17 +96,17 @@ forces :: [Particle] -> [Particle]
 forces ps = map (calcPV ps) ps
 
 calcPV :: [Particle] -> Particle -> Particle
-calcPV ps pi'@(Particle pix piv pif pid pipr) = Particle pix piv (fpress + fvisc + fgrav) pid pipr
+calcPV ps pi'@(Particle pix piv _ pid pipr) = Particle pix piv (fpress + fvisc + fgrav) pid pipr
   where
     fgrav = fGravity pid
     (fpress, fvisc) = folder $ map go ps
           where go :: Particle -> (V2 Double, V2 Double)
-                go pj@(Particle pjx pjv pjf pjd pjpr)
+                go pj@(Particle pjx pjv _ pjd pjpr)
                   | pi' == pj = (V2 0 0, V2 0 0)
                   | r < h     = (fpress', fvisc')
                   | otherwise = (V2 0 0, V2 0 0)
                   where fpress' = (-(pjx - pix)/(realToFrac r)*(realToFrac mass)*(realToFrac (pipr + pjpr)) /
-                                  (realToFrac (2.0 * pjd)) * realToFrac spiky_grad * (realToFrac (h-r))^2)
+                                  (realToFrac (2.0 * pjd)) * realToFrac spiky_grad * (realToFrac (h-r))^(2 :: Int))
                         fvisc' = visc * (realToFrac mass) * (pjv - piv) /
                           (realToFrac pjd) * realToFrac visc_lap * realToFrac (h-r)
                         r = norm (pjx - pix)
