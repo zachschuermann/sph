@@ -17,7 +17,7 @@ drawPoints ps = do
   clear [ColorBuffer]
   loadIdentity
   ortho 0 view_width 0 view_height 0 1
-  pointSize $= 30
+  pointSize $= 16 -- TODO
   pointSmooth $= Enabled
   renderPrimitive Points $
     -- color3f 1 0 1

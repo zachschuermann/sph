@@ -4,23 +4,44 @@ import Lib
 import Graphics.UI.GLUT
 import Linear.V2
 import System.Exit
+import System.Random
 import Data.IORef
 
-window_width :: Integer
-window_height :: Integer
+-- window_width :: Integer
+-- window_height :: Integer
 window_width = 800;
 window_height = 600;
+
+num_points :: Int
+num_points = 400
+
+h         = 16.0     -- kernel radius
+
+eps = h -- boundary epsilon
+
+view_width = 1.5*800.0; -- TODO change to window width/height
+view_height = 1.5*600.0;
+
 
 main :: IO ()
 main = do
   (_progName, _args) <- getArgsAndInitialize
   initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer]
-  initialWindowSize $= Size 800 600
+  initialWindowSize $= Size window_width window_height
   _window <- createWindow "SPH"
   reshapeCallback $= Just reshape
   init_
 
-  ps <- newIORef $ makeParticles [(100, 100), (400, 600)]
+  g <- getStdGen
+
+  let jitters = randoms g :: [Double]
+      points = take num_points $ initPoints jitters
+
+  putStrLn $ "Starting " ++ show num_points ++ " point simulation..."
+  -- print points
+ 
+  ps <- newIORef $ makeParticles points
+ 
   displayCallback $= display ps
   idleCallback $= Just (idle ps)
   keyboardMouseCallback $= Just (keyboard)
@@ -44,6 +65,12 @@ keyboard key keyState _ _ = do
       (Char 'q', Down) -> exitWith ExitSuccess
       (Char '\27', Down) -> exitWith ExitSuccess
       (_, _) -> return ()
+
+initPoints :: [Double] -> [(Double, Double)]
+initPoints jitters = zipWith (\(x, y) j -> (x+j, y)) makePoints jitters
+  where makePoints :: [(Double, Double)]
+        makePoints = [(x, y) | y <- [view_width/4, view_width/4 + h..view_height-eps*2],
+                               x <- [eps, eps+h..view_width/2]]
 
 makeParticles :: [(Double, Double)] -> [Particle]
 makeParticles pts = map maker pts
