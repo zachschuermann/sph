@@ -3,42 +3,6 @@ import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
 
-g :: V2 Double
-rest_dens :: Double
-gas_const :: Double
-h :: Double
-hsq :: Double
-mass :: Double
-visc :: V2 Double -- TODO fix
-dt :: V2 Double -- TODO fix
-poly6 :: Double
-spiky_grad :: Double
-visc_lap :: Double
-eps :: Double
-bound_damping :: Double
-view_width :: Double
-view_height :: Double
-
-g         = V2 0 (12000 * (-9.8)) -- 12000?
-rest_dens = 1000.0
-gas_const = 2000.0
-h         = 16.0     -- kernel radius
-hsq       = h*h
-mass      = 65.0     -- assume all particles have the same mass
-visc      = 250.0    -- viscosity constant
-dt        = 0.0008
-
-poly6 = 315.0 / (65.0*pi*(h^(9 :: Int)))
-spiky_grad = (-45.0) / (pi*h^(6 :: Int))
-visc_lap = 45.0 / (pi*h^(6 :: Int))
-
--- simulation parameters
-eps = h -- boundary epsilon
-bound_damping = (-0.5)
-
-view_width = 1.5*800.0; -- TODO change to window width/height
-view_height = 1.5*600.0;
-
 update :: [Particle] -> [Particle]
 update = integrate . forces . densityPressure
 

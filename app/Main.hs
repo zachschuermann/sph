@@ -7,34 +7,21 @@ import System.Exit
 import System.Random
 import Data.IORef
 
--- window_width :: Integer
--- window_height :: Integer
-window_width = 800;
-window_height = 600;
-
 num_points :: Int
-num_points = 400
-
-h         = 16.0     -- kernel radius
-
-eps = h -- boundary epsilon
-
-view_width = 1.5*800.0; -- TODO change to window width/height
-view_height = 1.5*600.0;
-
+num_points = 500
 
 main :: IO ()
 main = do
   (_progName, _args) <- getArgsAndInitialize
   initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer]
-  initialWindowSize $= Size window_width window_height
+  initialWindowSize $= Size (fromIntegral window_width) (fromIntegral window_height)
   _window <- createWindow "SPH"
   reshapeCallback $= Just reshape
   init_
 
-  g <- getStdGen
+  gen <- getStdGen
 
-  let jitters = randoms g :: [Double]
+  let jitters = randoms gen :: [Double]
       points = take num_points $ initPoints jitters
 
   putStrLn $ "Starting " ++ show num_points ++ " point simulation..."
@@ -55,7 +42,7 @@ init_ :: IO ()
 init_ = do
    -- set up the only menu
    attachMenu RightButton (Menu [MenuEntry "Exit" (exitWith ExitSuccess)])
-   depthFunc $= Just Less
+   -- depthFunc $= Just Less
 
 keyboard :: KeyboardMouseCallback
 keyboard key keyState _ _ = do
