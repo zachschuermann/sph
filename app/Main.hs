@@ -8,16 +8,13 @@ import Data.IORef
 main :: IO ()
 main = do
   (_progName, _args) <- getArgsAndInitialize
-  initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer ]
+  initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer]
   initialWindowSize $= Size 800 600
   _window <- createWindow "SPH"
   reshapeCallback $= Just reshape
   init_
 
-  -- ps <-
-  --ps <- newIORef [Particle (GLPoint 0.0 0.0) (Vector 1.0 1.0) (Vector 1.0 1.0) 10.1 11.1,
-   --               Particle (GLPoint 0.2 0.0) (Vector 1.0 1.0) (Vector 1.0 1.0) 10.1 11.1]
-  ps <- newIORef $ makeParticles [(0.0, 0.0), (0.2, 0.0)]
+  ps <- newIORef $ makeParticles [(100, 100), (400, 400)]
   displayCallback $= display ps
   idleCallback $= Just (idle ps)
   keyboardMouseCallback $= Just (keyboard)
@@ -26,7 +23,7 @@ main = do
 reshape :: ReshapeCallback
 reshape size = do
   viewport $= (Position 0 0, size)
-
+ 
 init_ :: IO ()
 init_ = do
    -- set up the only menu

@@ -4,13 +4,19 @@ import Lib
 import Graphics.UI.GLUT
 import Data.IORef
 
+view_width :: Double
+view_width = 1.5*800.0
+view_height :: Double
+view_height = 1.5*600.0
+
 drawPoints :: [(Float, Float)] -> IO ()
 drawPoints ps = do
-  let color3f r g b = color $ Color3 r g (b :: GLfloat)
-      vertex3f x' y' z = vertex $ Vertex3 x' y' (z :: GLfloat)
+  let vertex3f x' y' z = vertex $ Vertex3 x' y' (z :: GLfloat)
+      -- color3f r g b = color $ Color3 r g (b :: GLfloat)
   clear [ColorBuffer]
   loadIdentity
-  pointSize $= 10
+  ortho 0 view_width 0 view_height 0 1
+  pointSize $= 30
   pointSmooth $= Enabled
   renderPrimitive Points $
     -- color3f 1 0 1

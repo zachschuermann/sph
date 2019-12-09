@@ -30,7 +30,7 @@ update ps = map incr ps
   where
     incr :: Particle -> Particle
     incr (Particle p v f d pr) = Particle (pp p) v f d pr
-      where pp (GLPoint x y) = GLPoint (x + 0.01) y
+      where pp (GLPoint x y) = GLPoint (x + 10) y
 
 solve :: IO ()
 solve = putStrLn "test"
