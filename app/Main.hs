@@ -1,46 +1,39 @@
 module Main where
-import Lib
+import Display (display, idle)
+import Solver (solve)
 import Graphics.UI.GLUT
+import System.Exit
+import Data.IORef
 
 -- very helpful: https://wiki.haskell.org/OpenGLTutorial2
-
-myPoints :: [(GLfloat,GLfloat,GLfloat)]
-myPoints = [ (sin (2*pi*k/12), cos (2*pi*k/12), 0) | k <- [1..12] ]
 
 main :: IO ()
 main = do
   (_progName, _args) <- getArgsAndInitialize
-  _window <- createWindow "Hello World"
-  displayCallback $= display
+  initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer ]
+  initialWindowSize $= Size 500 500
+  _window <- createWindow "SPH"
+
+  init_
+
+  x <- newIORef 0.0
+  displayCallback $= display x
+  idleCallback $= Just (idle x)
+  keyboardMouseCallback $= Just (keyboard)
   mainLoop
 
--- display :: DisplayCallback
--- display = do
---   clear [ ColorBuffer ]
---   renderPrimitive Triangles $
---      mapM_ (\(x, y, z) -> vertex $ Vertex3 x y z) myPoints
---   flush
+init_ :: IO ()
+init_ = do
+   -- set up the only meny
+   attachMenu RightButton (Menu [MenuEntry "Exit" (exitWith ExitSuccess)])
+   depthFunc $= Just Less
 
-display = do
-  let color3f r g b = color $ Color3 r g (b :: GLfloat)
-      vertex3f x y z = vertex $ Vertex3 x y (z :: GLfloat)
-  clear [ColorBuffer]
-  renderPrimitive Quads $ do
-    color3f 1 0 0
-    vertex3f 0 0 0
-    vertex3f 0 0.2 0
-    vertex3f 0.2 0.2 0
-    vertex3f 0.2 0 0
+keyboard :: KeyboardMouseCallback
+keyboard key keyState _ _ = do
+   -- modifiers _ $= mods
+   postRedisplay Nothing
+   case (key, keyState) of
+      (Char 'q', Down) -> exitWith ExitSuccess
+      (Char '\27', Down) -> exitWith ExitSuccess
+      (_, _) -> return ()
 
-    color3f 0 1 0
-    vertex3f 0 0 0
-    vertex3f 0 (-0.2) 0
-    vertex3f 0.2 (-0.2) 0
-    vertex3f 0.2 0 0
-
-    color3f 0 0 1
-    vertex3f 0 0 0
-    vertex3f 0 (-0.2) 0
-    vertex3f (-0.2) (-0.2) 0
-    vertex3f (-0.2) 0 0
-  flush
