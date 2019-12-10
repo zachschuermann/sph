@@ -8,7 +8,7 @@ import System.Random
 import Data.IORef
 
 num_points :: Int
-num_points = 500
+num_points = 1000
 
 main :: IO ()
 main = do
@@ -28,9 +28,10 @@ main = do
   -- print points
  
   ps <- newIORef $ makeParticles points
+  iter <- newIORef $ (0 :: Int)
  
   displayCallback $= display ps
-  idleCallback $= Just (idle ps)
+  idleCallback $= Just (idle ps iter)
   keyboardMouseCallback $= Just (keyboard)
   mainLoop
 

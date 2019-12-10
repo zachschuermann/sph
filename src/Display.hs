@@ -4,6 +4,7 @@ import Lib
 import Linear.V2
 import Graphics.UI.GLUT
 import Data.IORef
+import System.Exit
 
 drawPoints :: [(Float, Float)] -> IO ()
 drawPoints ps = do
@@ -32,8 +33,14 @@ getPoint :: Particle -> (Float, Float)
 getPoint (Particle p _ _ _ _) = parse p
   where parse (V2 x y) = (realToFrac x, realToFrac y)
 
-idle :: IORef [Particle] -> IdleCallback
-idle ps = do
+idle :: IORef [Particle] -> IORef Int -> IdleCallback
+idle ps iter = do
   ps' <- get ps
+  i <- get iter
+
+  if i > 1000
+    then exitWith ExitSuccess
+    else writeIORef iter (i+1)
+
   writeIORef ps (update ps')
   postRedisplay Nothing
