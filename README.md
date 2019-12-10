@@ -24,6 +24,12 @@ stack setup
 stack build
 ```
 
+On Ubuntu:
+``` bash
+apt install freeglut3 freeglut3-dev
+```
+
+
 ## Ref
 - https://github.com/cerrno/mueller-sph/blob/master/src/main.cpp
 - https://www.cs.hs-rm.de/~panitz/hopengl/skript.pdf
