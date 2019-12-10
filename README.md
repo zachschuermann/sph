@@ -20,3 +20,4 @@ stack build
 - https://twoguysarguing.wordpress.com/2010/02/20/opengl-and-haskell/
 - https://www.arcadianvisions.com/blog/2011/modern-opengl-with-haskell.html
 - https://wiki.haskell.org/OpenGLTutorial2
+- https://www.cs.hs-rm.de/~panitz/hopengl/skript.pdf

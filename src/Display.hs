@@ -10,9 +10,10 @@ drawPoints ps = do
   let vertex3f x' y' z = vertex $ Vertex3 x' y' (z :: GLfloat)
       -- color3f r g b = color $ Color3 r g (b :: GLfloat)
   clear [ColorBuffer]
+  matrixMode $= Projection
   loadIdentity
   ortho 0 view_width 0 view_height 0 1
-  pointSize $= 16 -- TODO
+  pointSize $= realToFrac h
   pointSmooth $= Enabled
   renderPrimitive Points $
     -- color3f 1 0 1

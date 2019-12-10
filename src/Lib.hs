@@ -13,8 +13,8 @@ gas_const :: Double
 h :: Double
 hsq :: Double
 mass :: Double
-visc :: V2 Double -- TODO fix
-dt :: V2 Double -- TODO fix
+visc :: Double
+dt :: Double
 poly6 :: Double
 spiky_grad :: Double
 visc_lap :: Double
@@ -32,7 +32,7 @@ h         = 16.0     -- kernel radius
 hsq       = h*h
 mass      = 65.0     -- assume all particles have the same mass
 visc      = 250.0    -- viscosity constant
-dt        = 0.000008 -- 0.0008
+dt        = 0.00008 -- 0.0008
 
 poly6 = 315.0 / (65.0*pi*(h^(9 :: Int)))
 spiky_grad = (-45.0) / (pi*h^(6 :: Int))
