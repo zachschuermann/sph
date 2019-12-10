@@ -9,7 +9,7 @@ update = integrate . forces . densityPressure
 integrate :: [Particle] -> [Particle]
 integrate ps = map integrate_ ps
    where integrate_ (Particle p v f d pr) = enforceBC $ Particle updateP updateV f d pr
-           where updateP = p + ((realToFrac dt) * v)
+           where updateP = p + ((realToFrac dt) * updateV)
                  updateV = v + ((realToFrac dt * (f / (realToFrac d))))
 
 enforceBC :: Particle -> Particle
@@ -43,15 +43,14 @@ densityPressure :: [Particle] -> [Particle]
 densityPressure ps = map (calcDP ps) ps
 
 calcDP :: [Particle] -> Particle -> Particle
-calcDP ps (Particle pix piv pif pid _) = Particle pix piv pif newpid newpipr
-  where (newpid, newpipr) = folder $ map go ps
-          where go :: Particle -> (Double, Double)
+calcDP ps (Particle pix piv pif _ _) = Particle pix piv pif newpid newpipr
+  where newpid = sum $ map go ps
+          where go :: Particle -> Double
                 go (Particle pjx _ _ _ _)
-                  | r2 < hsq  = (mass * poly6 * (hsq-r2)^(3 :: Int), pipr')
-                  | otherwise = (0, pipr')
-                  where pipr' = gas_const*(pid - rest_dens)
-                        r2 = quadrance (pjx - pix)
-                folder = foldl (\(ax, ay) (x, y) -> (ax + x, ay + y)) (0, 0)
+                  | r2 < hsq  = mass * poly6 * (hsq-r2)^(3 :: Int)
+                  | otherwise = 0
+                  where r2 = quadrance (pjx - pix)
+        newpipr = gas_const * (newpid - rest_dens)
 
 fGravity :: Double -> V2 Double
 fGravity dens = g * (realToFrac dens)
@@ -69,7 +68,7 @@ calcPV ps pi'@(Particle pix piv _ pid pipr) = Particle pix piv (fpress + fvisc +
                   | pi' == pj = (V2 0 0, V2 0 0)
                   | r < h     = (fpress', fvisc')
                   | otherwise = (V2 0 0, V2 0 0)
-                  where fpress' = (-(pjx - pix)/(realToFrac r)*(realToFrac mass)*(realToFrac (pipr + pjpr)) /
+                  where fpress' = ((-1)*(pjx - pix)/(realToFrac r)*(realToFrac mass)*(realToFrac (pipr + pjpr)) /
                                   (realToFrac (2.0 * pjd)) * realToFrac spiky_grad * (realToFrac (h-r))^(2 :: Int))
                         fvisc' = (realToFrac visc) * (realToFrac mass) * (pjv - piv) /
                                  (realToFrac pjd) * realToFrac visc_lap * realToFrac (h-r)
