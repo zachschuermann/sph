@@ -2,6 +2,18 @@
 2D smoothed-particle hydrodynamics simulation implemented in haskell.
 
 ## Getting Started
+Requires `OpenGL`, `stack`.  
+
+Simple: 
+``` bash
+make run
+```
+
+Using stack: 
+``` bash
+stack build
+stack exec sph-exe
+```
 
 ## Log
 Created with `stack`.  
