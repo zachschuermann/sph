@@ -32,7 +32,7 @@ h         = 16.0     -- kernel radius
 hsq       = h*h
 mass      = 65.0     -- assume all particles have the same mass
 visc      = 250.0    -- viscosity constant
-dt        = 0.00008 -- 0.0008
+dt        = 0.0009 -- 0.0008
 
 poly6 = 315.0 / (65.0*pi*(h^(9 :: Int)))
 spiky_grad = (-45.0) / (pi*h^(6 :: Int))
@@ -40,7 +40,7 @@ visc_lap = 45.0 / (pi*h^(6 :: Int))
 
 -- simulation parameters
 eps = h -- boundary epsilon
-bound_damping = (-0.5)
+bound_damping = (-1) -- (-0.5)
 
 window_width = 800;
 window_height = 600;
