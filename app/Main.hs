@@ -1,8 +1,11 @@
 module Main where
 import Display (display, idle)
 import Lib
+import Solver (update)
 import Graphics.UI.GLUT
 import Linear.V2
+import Control.DeepSeq
+import System.Environment (getArgs, getProgName)
 import System.Exit
 import System.Random
 import Data.IORef
@@ -10,8 +13,37 @@ import Data.IORef
 num_points :: Int
 num_points = 1000
 
+iter :: Int
+iter = 1000
+
 main :: IO ()
 main = do
+  args <- getArgs
+  case args of
+    [] -> guiMain
+    ["-t"] -> cliMain
+    (flag:arg:[]) -> do die $ "idk"
+    _ -> usage
+
+usage :: IO ()
+usage = do pn <- getProgName
+           die $ "Usage: " ++ pn ++ " [-t] [-n <number particles>] [-i <number iterations>]"
+
+cliMain :: IO ()
+cliMain = do
+  gen <- getStdGen
+
+  putStrLn $ "Starting " ++ show num_points ++ " point simulation, " ++ show iter ++ " iterations..."
+
+  let jitters = randoms gen :: [Double]
+      points = take num_points $ initPoints jitters
+      particles = makeParticles points
+      sol = iterate update particles !! iter !! 10
+
+  sol `deepseq` putStrLn "Done."
+
+guiMain :: IO ()
+guiMain = do
   (_progName, _args) <- getArgsAndInitialize
   initialDisplayMode $= [DoubleBuffered] --, RGBMode, WithDepthBuffer]
   initialWindowSize $= Size (fromIntegral window_width) (fromIntegral window_height)

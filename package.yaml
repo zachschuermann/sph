@@ -24,6 +24,7 @@ dependencies:
 - random
 - linear
 - GLUT
+- deepseq
 
 library:
   source-dirs: src

@@ -1,11 +1,19 @@
 module Lib where
 import Linear.V2
+import Control.DeepSeq
 
 data Particle = Particle {point :: V2 Double,
                           velocity :: V2 Double,
                           force :: V2 Double,
                           density :: Double,
                           pressure :: Double} deriving (Eq, Show)
+
+instance NFData Particle where
+  rnf (Particle p v f d pr) = rnf p `deepseq`
+                              rnf v `deepseq`
+                              rnf f `deepseq`
+                              rnf d `deepseq`
+                              rnf pr
 
 g :: V2 Double
 rest_dens :: Double
