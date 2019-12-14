@@ -25,6 +25,7 @@ dependencies:
 - linear
 - GLUT
 - deepseq
+- parallel
 
 library:
   source-dirs: src

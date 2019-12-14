@@ -2,9 +2,14 @@ module Solver (update) where
 import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
+import Control.Parallel.Strategies (using, parList, rseq)
 
 update :: [Particle] -> [Particle]
-update = integrate . forces . densityPressure
+update ps = (integrate (forces (densityPressure ps))) `using` parList rseq
+
+-- sequential
+-- update :: [Particle] -> [Particle]
+-- update = (integrate . forces . densityPressure) `using` parList rseq
 
 integrate :: [Particle] -> [Particle]
 integrate ps = map integrate_ ps
@@ -16,25 +21,25 @@ enforceBC :: Particle -> Particle
 enforceBC = bot . top . left . right
   where bot pa@(Particle p v f d pr)
           | check p = newp p v f d pr
-          | otherwise  = pa
+          | otherwise = pa
           where check (V2 px _) = px - eps < 0.0
                 newp (V2 _ py) (V2 vx vy) f' d' pr' =
                   Particle (V2 eps py) (V2 (vx * bound_damping) vy) f' d' pr'
         top pa@(Particle p v f d pr)
           | check p = newp p v f d pr
-          | otherwise  = pa
+          | otherwise = pa
           where check (V2 px _) = px + eps > view_width
                 newp (V2 _ py) (V2 vx vy) f' d' pr' =
                   Particle (V2 (view_width - eps) py) (V2 (vx * bound_damping) vy) f' d' pr'
         left pa@(Particle p v f d pr)
           | check p = newp p v f d pr
-          | otherwise  = pa
+          | otherwise = pa
           where check (V2 _ py) = py - eps < 0.0
                 newp (V2 px _) (V2 vx vy) f' d' pr' =
                   Particle (V2 px eps) (V2 vx (vy * bound_damping)) f' d' pr'
         right pa@(Particle p v f d pr)
           | check p = newp p v f d pr
-          | otherwise  = pa
+          | otherwise = pa
           where check (V2 _ py) = py + eps > view_height
                 newp (V2 px _) (V2 vx vy) f' d' pr' =
                   Particle (V2 px (view_height - eps)) (V2 vx (vy * bound_damping)) f' d' pr'
