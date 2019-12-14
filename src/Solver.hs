@@ -1,4 +1,4 @@
-module Solver (update) where
+module Solver (update, supdate) where
 import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
@@ -8,8 +8,8 @@ update :: [Particle] -> [Particle]
 update ps = (integrate (forces (densityPressure ps))) `using` parList rseq
 
 -- sequential
--- update :: [Particle] -> [Particle]
--- update = (integrate . forces . densityPressure) `using` parList rseq
+supdate :: [Particle] -> [Particle]
+supdate = integrate . forces . densityPressure
 
 integrate :: [Particle] -> [Particle]
 integrate ps = map integrate_ ps

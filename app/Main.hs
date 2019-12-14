@@ -1,7 +1,7 @@
 module Main where
 import Display (display, idle)
 import Lib
-import Solver (update)
+import Solver (update, supdate)
 import Graphics.UI.GLUT
 import Linear.V2
 import Control.DeepSeq
@@ -26,16 +26,26 @@ main = do
     ["-t", "-n", n] -> cliMain (read n) iter
     ["-t", "-n", n, "-i", iters] -> cliMain (read n) (read iters)
     ["-t", "-i", iters] -> cliMain num_points (read iters)
+    ["-ts"] -> cliMainSeq num_points iter
+    ["-ts", "-n", n] -> cliMainSeq (read n) iter
+    ["-ts", "-n", n, "-i", iters] -> cliMainSeq (read n) (read iters)
+    ["-ts", "-i", iters] -> cliMainSeq num_points (read iters)
     _ -> usage
 
 usage :: IO ()
 usage = do pn <- getProgName
-           die $ "Usage: " ++ pn ++ " [-t] [-n <number particles>] [-i <number iterations>]"
+           die $ "Usage: " ++ pn ++ " [-ts] [-n <number particles>] [-i <number iterations>]"
 
 cliMain :: Int -> Int -> IO ()
 cliMain nps iters = do
   particles <- simInit nps iters
   let sol = iterate update particles !! iters
+  (sol !! 10) `deepseq` putStrLn "Done."
+
+cliMainSeq :: Int -> Int -> IO ()
+cliMainSeq nps iters = do
+  particles <- simInit nps iters
+  let sol = iterate supdate particles !! iters
   (sol !! 10) `deepseq` putStrLn "Done."
 
 guiMain :: Int -> Int -> IO ()
