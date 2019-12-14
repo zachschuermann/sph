@@ -2,10 +2,14 @@ module Solver (update, supdate) where
 import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
-import Control.Parallel.Strategies (using, parList, rseq)
+import Control.Parallel.Strategies (withStrategy, parBuffer, rdeepseq) --(using, parList, rseq)
 
 update :: [Particle] -> [Particle]
-update ps = (integrate (forces (densityPressure ps))) `using` parList rseq
+update = integrate
+         . withStrategy (parBuffer 100 rdeepseq)
+         . forces
+         . densityPressure
+--update ps = (integrate (forces (densityPressure ps))) `using` parList rseq
 
 -- sequential
 supdate :: [Particle] -> [Particle]

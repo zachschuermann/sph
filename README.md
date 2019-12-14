@@ -39,3 +39,4 @@ apt install freeglut3 freeglut3-dev
 - https://www.arcadianvisions.com/blog/2011/modern-opengl-with-haskell.html
 - https://wiki.haskell.org/OpenGLTutorial2
 - https://www.cs.hs-rm.de/~panitz/hopengl/skript.pdf
+- https://www.fpcomplete.com/blog/2017/09/all-about-strictness
