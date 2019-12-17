@@ -16,7 +16,7 @@ iter :: Int
 chunks :: Int
 num_points = 500
 iter = 1000
-chunks = 50
+chunks = 10
 
 main :: IO ()
 main = do
@@ -25,17 +25,17 @@ main = do
     -- need more elegant way of doing this..
     [] -> guiMain num_points iter chunks
     ["-t"] -> cliMainPar num_points chunks iter
-    ["-t", "-n", n] -> cliMainPar (read n) chunks iter
+    ["-t", "-n", n, "-c", c] -> cliMainPar (read n) (read c) iter
     ["-t", "-n", n, "-i", iters] -> cliMainPar (read n) chunks (read iters)
     ["-t", "-i", iters] -> cliMainPar num_points chunks (read iters)
-    ["-ts"] -> cliMainSeq num_points iter
-    ["-ts", "-n", n] -> cliMainSeq (read n) iter
-    ["-ts", "-n", n, "-i", iters] -> cliMainSeq (read n) (read iters)
-    ["-ts", "-i", iters] -> cliMainSeq num_points (read iters)
+    ["-ts"] -> cliMainSeq num_points chunks iter
+    ["-ts", "-n", n] -> cliMainSeq (read n) chunks iter
+    ["-ts", "-n", n, "-i", iters] -> cliMainSeq (read n) chunks (read iters)
+    ["-ts", "-i", iters] -> cliMainSeq num_points chunks (read iters)
     _ -> usage
-  where cliMainPar nps ncs = (cliMain $ update chunks) nps chks
-          where chks = nps `div` ncs
-        cliMainSeq = (cliMain supdate) chunks
+  where cliMainPar nps ncs = (cliMain $ update ppc) nps ncs
+          where ppc = nps `div` ncs
+        cliMainSeq = cliMain supdate
 
 usage :: IO ()
 usage = do pn <- getProgName
@@ -45,7 +45,7 @@ usage = do pn <- getProgName
 
 
 cliMain :: ([Particle] -> [Particle]) -> Int -> Int -> Int -> IO ()
-cliMain f nps iters chks = do
+cliMain f nps chks iters = do
   particles <- simInit nps iters chks
   let sol = iterate f particles !! iters
   sol `deepseq` putStrLn "Done."

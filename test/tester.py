@@ -1,15 +1,27 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 
 import glob
 import os
 import shutil
 import subprocess
 import sys
+import re
+import statistics
+import json
+from tqdm import tqdm
 
-def run_test(i):
-    print('test ', i)
-    result = subprocess.run("time sph-exe -ts -n 1000 +RTS -N4 -s", shell=True)
-    return result.returncode
+NUM_TESTS = 5
+
+def run_test(n, c, threads):
+    cmd = "(time sph-exe -t -n {} -c {} +RTS -N{}) > timekeeper.log 2>&1".format(n, c, threads)
+    result = subprocess.run(cmd, shell=True)
+    if result.returncode != 0:
+        raise Exception("Failed subprocess")
+    with open("timekeeper.log") as f:
+        for line in f:
+            if "real" in line:
+                m = re.search('real\t0m([^s]*)', line)
+                return float(m.group(1))
 
 def do_make():
     os.chdir('../')
@@ -29,12 +41,47 @@ def do_make():
 #     cleanup()
     #shutil.move(f, "done/" + filename)
 
+def seq_test(n):
+    times = []
+    for i in tqdm(range(NUM_TESTS)):
+        cmd = "(time sph-exe -ts -n {} +RTS -N1) > timekeeper.log 2>&1".format(n)
+        result = subprocess.run(cmd, shell=True)
+        if result.returncode != 0:
+            raise Exception("Failed subprocess")
+        with open("timekeeper.log") as f:
+            for line in f:
+                if "real" in line:
+                    m = re.search('real\t0m([^s]*)', line)
+                    times.append(float(m.group(1)))
+    print("avg: ", statistics.mean(times))
+    print("stddev: ", statistics.stdev(times))
+
 def main():
+    nps = 500
     print('running tester...')
     do_make()
-    for i in range(5):
-        run_test(i)
+    #seq_test(nps)
+    tests = {} # map: cores -> chunks -> test
+    cores = [2, 4, 8, 12, 16]
+    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 150, 180, 240,
+              300, 400, 500]
+    stat = {}
+    for c in tqdm(cores, desc='cores'):
+        tests[c] = {}
+        stat[c] = {}
+        for chks in tqdm(chunks, desc='chunks'):
+            tests[c][chks] = []
+            for i in range(NUM_TESTS):
+                tests[c][chks].append(run_test(nps, chks, c))
+            stat[c][chks] = (statistics.mean(tests[c][chks]),
+                             statistics.stdev(tests[c][chks]))
 
+    tsave = json.dumps(tests)
+    ssave = json.dumps(stat)
+    with open("test2.json","w") as f:
+        f.write(tsave)
+    with open("stat2.json","w") as f:
+        f.write(ssave)
 
 if __name__ == '__main__':
     sys.exit(main())

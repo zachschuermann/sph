@@ -1,0 +1,7 @@
+#!/usr/local/bin/python3
+
+import tester
+import sys
+
+if __name__ == '__main__':
+   sys.exit(tester.main())
