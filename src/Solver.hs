@@ -2,22 +2,50 @@ module Solver (update, supdate) where
 import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
-import Control.Parallel.Strategies (withStrategy, parBuffer, rdeepseq) --(using, parList, rseq)
+import Control.Parallel.Strategies (runEval, Eval, rpar, withStrategy, parBuffer, rdeepseq, using, parList, parListChunk, rseq)
+
+parMap :: (a -> b) -> [a] -> [b]
+parMap f xs = map f xs `using` parList rseq
+-- parMap f [] = return []
+-- parMap f (x:y:[]) = do
+--   as <- rpar (f x)
+--   bs <- rpar (f y)
+--   rseq as
+--   rseq bs
+--   return (as:bs:[])
+-- parMap f (a:as) = do
+--    b <- rpar (f a)
+--    bs <- parMap f as
+--    return (b:bs)
 
 update :: [Particle] -> [Particle]
-update = integrate
-         . withStrategy (parBuffer 100 rdeepseq)
-         . forces
-         . densityPressure
+update ps = map integrate (forces (densityPressure ps)) `using` parListChunk 250 rseq
+
+--update ps = concatMap (update' ps) chunks -- `using` parList rseq)
+-- update ps = concat $ parMap (update' ps) chunks -- `using` parList rseq)
+  -- where chunks = split 2 ps
+
+update' :: [Particle] -> [Particle] -> [Particle]
+update' allps ps = map (integrate . calcPV alldpps) dpps -- `using` parList rseq
+  where dpps = map (calcDP allps) ps
+        alldpps = map (calcDP allps) allps -- `using` parList rseq
+
+-- . withStrategy (parBuffer 100 rdeepseq)
 --update ps = (integrate (forces (densityPressure ps))) `using` parList rseq
 
 -- sequential
 supdate :: [Particle] -> [Particle]
-supdate = integrate . forces . densityPressure
+supdate ps = map integrate (forces (densityPressure ps))
 
-integrate :: [Particle] -> [Particle]
-integrate ps = map integrate_ ps
-   where integrate_ (Particle p v f d pr) = enforceBC $ Particle updateP updateV f d pr
+split :: Int -> [a] -> [[a]]
+split numChunks xs = chunk (length xs `quot` numChunks) xs
+
+chunk :: Int -> [a] -> [[a]]
+chunk _ [] = []
+chunk n xs = let (as, bs) = splitAt n xs in as : chunk n bs
+
+integrate :: Particle -> Particle
+integrate (Particle p v f d pr) = enforceBC $ Particle updateP updateV f d pr
            where updateP = p + ((realToFrac dt) * updateV)
                  updateV = v + ((realToFrac dt * (f / (realToFrac d))))
 

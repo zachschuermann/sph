@@ -40,13 +40,13 @@ cliMain :: Int -> Int -> IO ()
 cliMain nps iters = do
   particles <- simInit nps iters
   let sol = iterate update particles !! iters
-  (sol !! 10) `deepseq` putStrLn "Done."
+  sol `deepseq` putStrLn "Done."
 
 cliMainSeq :: Int -> Int -> IO ()
 cliMainSeq nps iters = do
   particles <- simInit nps iters
   let sol = iterate supdate particles !! iters
-  (sol !! 10) `deepseq` putStrLn "Done."
+  sol `deepseq` putStrLn "Done."
 
 guiMain :: Int -> Int -> IO ()
 guiMain nps iters = do
