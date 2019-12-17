@@ -33,8 +33,8 @@ getPoint :: Particle -> (Float, Float)
 getPoint (Particle p _ _ _ _) = parse p
   where parse (V2 x y) = (realToFrac x, realToFrac y)
 
-idle :: Int -> IORef [Particle] -> IORef Int -> IdleCallback
-idle num_iters ps iter = do
+idle :: Int -> Int -> IORef [Particle] -> IORef Int -> IdleCallback
+idle ppc num_iters ps iter = do
   ps' <- get ps
   i <- get iter
 
@@ -42,5 +42,5 @@ idle num_iters ps iter = do
     then exitWith ExitSuccess
     else writeIORef iter (i+1)
 
-  writeIORef ps (update ps')
+  writeIORef ps (update ppc ps')
   postRedisplay Nothing

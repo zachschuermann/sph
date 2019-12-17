@@ -13,8 +13,10 @@ import Data.IORef
 -- default number of points/iterations
 num_points :: Int
 iter :: Int
+chunks :: Int
 num_points = 500
 iter = 1000
+chunks = 50
 
 main :: IO ()
 main = do
@@ -22,31 +24,33 @@ main = do
   case args of
     -- need more elegant way of doing this..
     [] -> guiMain num_points iter
-    ["-t"] -> cliMain num_points iter
-    ["-t", "-n", n] -> cliMain (read n) iter
-    ["-t", "-n", n, "-i", iters] -> cliMain (read n) (read iters)
-    ["-t", "-i", iters] -> cliMain num_points (read iters)
+    ["-t"] -> cliMainPar num_points iter
+    ["-t", "-n", n] -> cliMainPar (read n) iter
+    ["-t", "-n", n, "-i", iters] -> cliMainPar (read n) (read iters)
+    ["-t", "-i", iters] -> cliMainPar num_points (read iters)
     ["-ts"] -> cliMainSeq num_points iter
     ["-ts", "-n", n] -> cliMainSeq (read n) iter
     ["-ts", "-n", n, "-i", iters] -> cliMainSeq (read n) (read iters)
     ["-ts", "-i", iters] -> cliMainSeq num_points (read iters)
     _ -> usage
+  where cliMainPar = cliMain $ update (num_points `div` chunks)
+        cliMainSeq = cliMain supdate
 
 usage :: IO ()
 usage = do pn <- getProgName
            die $ "Usage: " ++ pn ++ " [-ts] [-n <number particles>] [-i <number iterations>]"
 
-cliMain :: Int -> Int -> IO ()
-cliMain nps iters = do
+cliMain :: ([Particle] -> [Particle]) -> Int -> Int -> IO ()
+cliMain f nps iters = do
   particles <- simInit nps iters
-  let sol = iterate update particles !! iters
+  let sol = iterate f particles !! iters
   sol `deepseq` putStrLn "Done."
 
-cliMainSeq :: Int -> Int -> IO ()
-cliMainSeq nps iters = do
-  particles <- simInit nps iters
-  let sol = iterate supdate particles !! iters
-  sol `deepseq` putStrLn "Done."
+-- cliMainSeq :: Int -> Int -> IO ()
+-- cliMainSeq nps iters = do
+--   particles <- simInit nps iters
+--   let sol = iterate supdate particles !! iters
+--   sol `deepseq` putStrLn "Done."
 
 guiMain :: Int -> Int -> IO ()
 guiMain nps iters = do
@@ -62,7 +66,7 @@ guiMain nps iters = do
   iterRef <- newIORef $ (0 :: Int)
  
   displayCallback $= display ps
-  idleCallback $= Just (idle iters ps iterRef)
+  idleCallback $= Just (idle (num_points `div` chunks) iters ps iterRef)
   keyboardMouseCallback $= Just (keyboard)
   mainLoop
 
