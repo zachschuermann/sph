@@ -23,26 +23,30 @@ main = do
   args <- getArgs
   case args of
     -- need more elegant way of doing this..
-    [] -> guiMain num_points iter
-    ["-t"] -> cliMainPar num_points iter
-    ["-t", "-n", n] -> cliMainPar (read n) iter
-    ["-t", "-n", n, "-i", iters] -> cliMainPar (read n) (read iters)
-    ["-t", "-i", iters] -> cliMainPar num_points (read iters)
+    [] -> guiMain num_points iter chunks
+    ["-t"] -> cliMainPar num_points chunks iter
+    ["-t", "-n", n] -> cliMainPar (read n) chunks iter
+    ["-t", "-n", n, "-i", iters] -> cliMainPar (read n) chunks (read iters)
+    ["-t", "-i", iters] -> cliMainPar num_points chunks (read iters)
     ["-ts"] -> cliMainSeq num_points iter
     ["-ts", "-n", n] -> cliMainSeq (read n) iter
     ["-ts", "-n", n, "-i", iters] -> cliMainSeq (read n) (read iters)
     ["-ts", "-i", iters] -> cliMainSeq num_points (read iters)
     _ -> usage
-  where cliMainPar = cliMain $ update (num_points `div` chunks)
-        cliMainSeq = cliMain supdate
+  where cliMainPar nps ncs = (cliMain $ update chunks) nps chks
+          where chks = nps `div` ncs
+        cliMainSeq = (cliMain supdate) chunks
 
 usage :: IO ()
 usage = do pn <- getProgName
-           die $ "Usage: " ++ pn ++ " [-ts] [-n <number particles>] [-i <number iterations>]"
+           die $ "Usage: " ++ pn ++
+             " [-ts] [-n <number particles>] [-i <number iterations>]" ++
+             " [-c <number of chunks>]"
 
-cliMain :: ([Particle] -> [Particle]) -> Int -> Int -> IO ()
-cliMain f nps iters = do
-  particles <- simInit nps iters
+
+cliMain :: ([Particle] -> [Particle]) -> Int -> Int -> Int -> IO ()
+cliMain f nps iters chks = do
+  particles <- simInit nps iters chks
   let sol = iterate f particles !! iters
   sol `deepseq` putStrLn "Done."
 
@@ -52,8 +56,8 @@ cliMain f nps iters = do
 --   let sol = iterate supdate particles !! iters
 --   sol `deepseq` putStrLn "Done."
 
-guiMain :: Int -> Int -> IO ()
-guiMain nps iters = do
+guiMain :: Int -> Int -> Int -> IO ()
+guiMain nps iters chks = do
   (_progName, _args) <- getArgsAndInitialize
   initialDisplayMode $= [DoubleBuffered] -- unused: RGBMode, WithDepthBuffer
   initialWindowSize $= Size (fromIntegral window_width) (fromIntegral window_height)
@@ -61,7 +65,7 @@ guiMain nps iters = do
   reshapeCallback $= Just reshape
   init_
 
-  particles <- simInit nps iters
+  particles <- simInit nps iters chks
   ps <- newIORef $ particles
   iterRef <- newIORef $ (0 :: Int)
  
@@ -70,14 +74,15 @@ guiMain nps iters = do
   keyboardMouseCallback $= Just (keyboard)
   mainLoop
 
-simInit :: Int -> Int -> IO [Particle]
-simInit nps iters = do
+simInit :: Int -> Int -> Int -> IO [Particle]
+simInit nps iters chks = do
   gen <- getStdGen
 
   let jitters = randoms gen :: [Double]
       points = take nps $ initPoints jitters
 
-  putStrLn $ "Starting " ++ show nps ++ " point simulation, " ++ show iters ++ " iterations..."
+  putStrLn $ "Starting " ++ show nps ++ " point simulation, "
+    ++ show iters ++ " iterations (" ++ show chks ++ " chunks)..."
   return $ makeParticles points
 
 reshape :: ReshapeCallback
