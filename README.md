@@ -14,6 +14,13 @@ Using stack:
 stack build
 stack exec sph-exe
 ```
+or
+``` bash
+stack install
+sph-exe -t -n 1000 -c 150 +RTS -N8 -s
+sph-exe --help #print usage
+```
+
 
 ## Log
 Created with `stack`.  
