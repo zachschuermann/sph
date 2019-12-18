@@ -8,9 +8,12 @@ import sys
 # avg:  29.849999999999998
 # stddev:  0.4526035793053339
 
+size = (6, 4)
+
 def plotter(stats):
     for core, stat in stats.items():
         cleanstat = {int(k):v for k,v in stat.items()}
+        plt.figure(figsize=size)
         plt.title("{}-core SPH".format(core))
         ls = sorted(cleanstat.items())
         x, y = zip(*ls)
@@ -19,10 +22,22 @@ def plotter(stats):
         plt.show()
 
 
+def combined_plotter(stats):
+    plt.figure(figsize=size)
+    plt.title("multi-core SPH".format(core))
+    for core, stat in stats.items():
+        cleanstat = {int(k):v for k,v in stat.items()}
+        ls = sorted(cleanstat.items())
+        x, y = zip(*ls)
+        y = [i[0] for i in y]
+        plt.plot(x, y)
+    plt.show()
+
 def plot_totals(totals, keys):
     tot_runtime = [29.85]
     for core, tot in totals.items():
         cleantot = {int(k):v for k,v in tot.items()}
+        plt.figure(figsize=size)
         plt.title("{}-core SPH".format(core))
         ls = sorted(cleantot.items())
         x, y = zip(*ls)
@@ -59,11 +74,25 @@ def total_stats(stats):
 def overall_plot(speedups, runtimes, tot_runtimes):
     cores = range(1, 7)
     # plot cores vs. speedups
-    plt.plot(cores, speedups)
+    plt.figure(figsize=size)
+    plt.title('Empirical vs. Ideal Speedup')
+    plt.xlabel('cores')
+    plt.ylabel('speedup (s/s)')
+    plt.plot(cores, speedups, marker=".")
+    plt.plot(cores, cores)
+    plt.legend(["Empirical", "Ideal"])
     plt.show()
+
+    plt.figure(figsize=size)
     plt.plot(cores, tot_runtimes)
     plt.show()
+
+    plt.figure(figsize=size)
+    plt.title('Cores vs. Runtime')
+    plt.xlabel('cores')
+    plt.ylabel('runtime (s)')
     plt.plot(cores, runtimes)
+    plt.show()
 
 def main():
     with open("stat3.json") as f:
