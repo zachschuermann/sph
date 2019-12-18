@@ -43,6 +43,7 @@ def do_make():
 
 def seq_test(n):
     times = []
+    realtimes = []
     for i in tqdm(range(NUM_TESTS)):
         cmd = "(time sph-exe -ts -n {} +RTS -N1) > timekeeper.log 2>&1".format(n)
         result = subprocess.run(cmd, shell=True)
@@ -63,8 +64,7 @@ def main():
     #seq_test(nps)
     tests = {} # map: cores -> chunks -> test
     cores = [2, 4, 8, 12, 16]
-    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 150, 180, 240,
-              300, 400, 500]
+    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 166, 250]
     stat = {}
     for c in tqdm(cores, desc='cores'):
         tests[c] = {}
