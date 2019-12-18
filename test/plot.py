@@ -21,12 +21,12 @@ def get_stats(stats):
         key_min = min(cleanstat.keys(), key=(lambda k: cleanstat[k][0]))
         print("{}-core SPH: ".format(core), key_min, "chunks")
         print("{}-core SPH: ".format(core), cleanstat[key_min])
-        print("{}-core SPH: ".format(core), 30/cleanstat[key_min][0]," speedup")
+        print("{}-core SPH: ".format(core), 29.894/cleanstat[key_min][0]," speedup")
         print()
 
 
 def main():
-    with open("stat.json") as f:
+    with open("stat3.json") as f:
         stats = json.load(f)
         plotter(stats)
         get_stats(stats)

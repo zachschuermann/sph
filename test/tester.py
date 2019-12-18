@@ -19,9 +19,12 @@ def run_test(n, c, threads):
         raise Exception("Failed subprocess")
     with open("timekeeper.log") as f:
         for line in f:
-            if "real" in line:
-                m = re.search('real\t0m([^s]*)', line)
-                return float(m.group(1))
+            if "elapse" in line:
+                m = re.search('0:([^el]*)', line)
+                m1 = re.search('([^user]*)', line)
+                m2 = re.search('user ([^sys]*)', line)
+                break
+        return float(m.group(1)), float(m1.group(1)) + float(m2.group(1))
 
 def do_make():
     os.chdir('../')
@@ -50,38 +53,50 @@ def seq_test(n):
             raise Exception("Failed subprocess")
         with open("timekeeper.log") as f:
             for line in f:
-                if "real" in line:
-                    m = re.search('real\t0m([^s]*)', line)
+                if "elapse" in line:
+                    m = re.search('0:([^el]*)', line)
                     times.append(float(m.group(1)))
     print("avg: ", statistics.mean(times))
     print("stddev: ", statistics.stdev(times))
 
 def main():
-    nps = 500
+    nps = 1000
     print('running tester...')
     do_make()
-    #seq_test(nps)
+    seq_test(nps)
+
+    cores = [2, 3, 4, 5, 6]
+    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 150, 175, 200, 250,
+              300, 333, 400, 500]
+
     tests = {} # map: cores -> chunks -> test
-    cores = [2, 4, 8, 12, 16]
-    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 150, 180, 240,
-              300, 400, 500]
     stat = {}
+    totals = {}
     for c in tqdm(cores, desc='cores'):
         tests[c] = {}
         stat[c] = {}
+        totals[c] = {}
         for chks in tqdm(chunks, desc='chunks'):
             tests[c][chks] = []
+            tots = []
             for i in range(NUM_TESTS):
-                tests[c][chks].append(run_test(nps, chks, c))
+                real, total = run_test(nps, chks, c)
+                tests[c][chks].append(real)
+                tots.append(total)
             stat[c][chks] = (statistics.mean(tests[c][chks]),
                              statistics.stdev(tests[c][chks]))
+            totals[c][chks] = (statistics.mean(tots),
+                               statistics.stdev(tots))
 
+    totsave = json.dumps(totals)
     tsave = json.dumps(tests)
     ssave = json.dumps(stat)
-    with open("test2.json","w") as f:
+    with open("test3.json","w") as f:
         f.write(tsave)
-    with open("stat2.json","w") as f:
+    with open("stat3.json","w") as f:
         f.write(ssave)
+    with open("tots3.json","w") as f:
+        f.write(totsave)
 
 if __name__ == '__main__':
     sys.exit(main())
