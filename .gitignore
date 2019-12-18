@@ -22,3 +22,5 @@ cabal.project.local~
 .ghc.environment.*
 sph.cabal
 *~
+__pycache__
+env/
