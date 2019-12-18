@@ -1,0 +1,29 @@
+Done.
+   5,246,507,864 bytes allocated in the heap
+   1,391,375,264 bytes copied during GC
+     152,816,120 bytes maximum residency (22 sample(s))
+         603,656 bytes maximum slop
+             145 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0      2657 colls,  2657 par    4.525s   0.736s     0.0003s    0.0007s
+  Gen  1        22 colls,    21 par    0.638s   0.341s     0.0155s    0.0797s
+
+  Parallel GC work balance: 76.64% (serial 0%, perfect 100%)
+
+  TASKS: 6 (1 bound, 5 peak workers (5 total), using -N2)
+
+  SPARKS: 1000000(8832 converted, 991072 overflowed, 0 dud, 0 GC'd, 96 fizzled)
+
+  INIT    time    0.001s  (  0.000s elapsed)
+  MUT     time   69.499s  ( 36.410s elapsed)
+  GC      time    5.163s  (  1.077s elapsed)
+  EXIT    time    0.000s  (  0.004s elapsed)
+  Total   time   74.664s  ( 37.490s elapsed)
+
+  Alloc rate    75,489,944 bytes per MUT second
+
+  Productivity  93.1% of total user, 97.1% of total elapsed
+
+sph-exe -t -n 1000 -c 45 +RTS -N2 -s  74.67s user 0.20s system 199% cpu 37.505 total
+

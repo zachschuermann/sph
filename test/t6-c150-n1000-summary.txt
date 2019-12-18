@@ -1,0 +1,30 @@
+Starting 1000 point simulation, 1000 iterations (150 chunks)...
+Done.
+   3,350,652,488 bytes allocated in the heap
+     617,135,792 bytes copied during GC
+         977,192 bytes maximum residency (279 sample(s))
+         168,944 bytes maximum slop
+               0 MB total memory in use (0 MB lost due to fragmentation)
+
+                                     Tot time (elapsed)  Avg pause  Max pause
+  Gen  0       624 colls,   624 par    4.911s   0.124s     0.0002s    0.0041s
+  Gen  1       279 colls,   278 par    2.096s   0.048s     0.0002s    0.0010s
+
+  Parallel GC work balance: 67.98% (serial 0%, perfect 100%)
+
+  TASKS: 14 (1 bound, 13 peak workers (13 total), using -N6)
+
+  SPARKS: 167000(167000 converted, 0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+
+  INIT    time    0.001s  (  0.001s elapsed)
+  MUT     time   26.789s  (  5.618s elapsed)
+  GC      time    7.007s  (  0.172s elapsed)
+  EXIT    time    0.001s  (  0.010s elapsed)
+  Total   time   33.798s  (  5.800s elapsed)
+
+  Alloc rate    125,076,299 bytes per MUT second
+
+  Productivity  79.3% of total user, 96.9% of total elapsed
+
+sph-exe -t -n 1000 -c 150 +RTS -N6 -s  33.80s user 0.37s system 588% cpu 5.807 total
+
