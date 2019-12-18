@@ -3,52 +3,14 @@ import Lib
 import Linear.V2
 import Linear.Metric (norm, quadrance)
 import Control.Parallel.Strategies (using, parListChunk, rseq)
--- (runEval, Eval, rpar, withStrategy, parBuffer, rdeepseq, using, parList, parListChunk, rseq)
 
-{-
-parMap :: (a -> b) -> [a] -> [b]
-parMap f xs = map f xs `using` parList rseq
--- parMap f [] = return []
--- parMap f (x:y:[]) = do
---   as <- rpar (f x)
---   bs <- rpar (f y)
---   rseq as
---   rseq bs
---   return (as:bs:[])
--- parMap f (a:as) = do
---    b <- rpar (f a)
---    bs <- parMap f as
---    return (b:bs)
--}
 update :: Int -> [Particle] -> [Particle]
 update partPerChunk ps = map integrate (forces (densityPressure ps))
                          `using` parListChunk partPerChunk rseq
 
---update ps = concatMap (update' ps) chunks -- `using` parList rseq)
--- update ps = concat $ parMap (update' ps) chunks -- `using` parList rseq)
-  -- where chunks = split 2 ps
-{-
-update' :: [Particle] -> [Particle] -> [Particle]
-update' allps ps = map (integrate . calcPV alldpps) dpps -- `using` parList rseq
-  where dpps = map (calcDP allps) ps
-        alldpps = map (calcDP allps) allps -- `using` parList rseq
--}
-
--- . withStrategy (parBuffer 100 rdeepseq)
---update ps = (integrate (forces (densityPressure ps))) `using` parList rseq
-
 -- sequential
 supdate :: [Particle] -> [Particle]
 supdate ps = map integrate (forces (densityPressure ps))
-
-{-
-split :: Int -> [a] -> [[a]]
-split numChunks xs = chunk (length xs `quot` numChunks) xs
-
-chunk :: Int -> [a] -> [[a]]
-chunk _ [] = []
-chunk n xs = let (as, bs) = splitAt n xs in as : chunk n bs
--}
 
 integrate :: Particle -> Particle
 integrate (Particle p v f d pr) = enforceBC $ Particle updateP updateV f d pr
@@ -68,7 +30,8 @@ enforceBC = bot . top . left . right
           | otherwise = pa
           where check (V2 px _) = px + eps > view_width
                 newp (V2 _ py) (V2 vx vy) f' d' pr' =
-                  Particle (V2 (view_width - eps) py) (V2 (vx * bound_damping) vy) f' d' pr'
+                  Particle (V2 (view_width - eps) py)
+                           (V2 (vx * bound_damping) vy) f' d' pr'
         left pa@(Particle p v f d pr)
           | check p = newp p v f d pr
           | otherwise = pa
@@ -80,7 +43,8 @@ enforceBC = bot . top . left . right
           | otherwise = pa
           where check (V2 _ py) = py + eps > view_height
                 newp (V2 px _) (V2 vx vy) f' d' pr' =
-                  Particle (V2 px (view_height - eps)) (V2 vx (vy * bound_damping)) f' d' pr'
+                  Particle (V2 px (view_height - eps))
+                           (V2 vx (vy * bound_damping)) f' d' pr'
 
 densityPressure :: [Particle] -> [Particle]
 densityPressure ps = map (calcDP ps) ps
@@ -102,7 +66,8 @@ forces :: [Particle] -> [Particle]
 forces ps = map (calcPV ps) ps
 
 calcPV :: [Particle] -> Particle -> Particle
-calcPV ps pi'@(Particle pix piv _ pid pipr) = Particle pix piv (fpress + fvisc + fgrav) pid pipr
+calcPV ps pi'@(Particle pix piv _ pid pipr) =
+  Particle pix piv (fpress + fvisc + fgrav) pid pipr
   where
     fgrav = fGravity pid
     (fpress, fvisc) = folder $ map go ps

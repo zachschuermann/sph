@@ -1,6 +1,6 @@
-Starting 500 point simulation, 1000 iterations (250 chunks)...
+Starting 1000 point simulation, 1000 iterations (12 chunks)...
 Done.
 
-real	0m1.993s
-user	0m26.803s
-sys	0m1.111s
+real	0m7.081s
+user	1m13.150s
+sys	0m0.687s

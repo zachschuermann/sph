@@ -33,14 +33,14 @@ view_height :: Double
 window_width :: Int
 window_height :: Int
 
-g         = V2 0 (12000 * (-9.8)) -- 12000?
+g         = V2 0 (12000 * (-9.8)) -- 12000
 rest_dens = 1000.0
 gas_const = 2000.0
 h         = 16.0     -- kernel radius
 hsq       = h*h
 mass      = 65.0     -- assume all particles have the same mass
 visc      = 250.0    -- viscosity constant
-dt        = 0.0009 -- 0.0008
+dt        = 0.0009   -- 0.0008
 
 poly6 = 315.0 / (65.0*pi*(h^(9 :: Int)))
 spiky_grad = (-45.0) / (pi*h^(6 :: Int))

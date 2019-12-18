@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+import time
 import glob
 import os
 import shutil
@@ -19,9 +20,10 @@ def run_test(n, c, threads):
         raise Exception("Failed subprocess")
     with open("timekeeper.log") as f:
         for line in f:
-            if "real" in line:
-                m = re.search('real\t0m([^s]*)', line)
-                return float(m.group(1))
+            m = re.search('real\t0m([^s]*)', line)
+            m2 = re.search('user\t0m([^s]*)', line)
+            m3 = re.search('sys\t0m([^s]*)', line)
+        return float(m.group(1)), float(m2.group(1)) + float(m3.group(1))
 
 def do_make():
     os.chdir('../')
@@ -58,30 +60,42 @@ def seq_test(n):
     print("stddev: ", statistics.stdev(times))
 
 def main():
-    nps = 500
+    nps = 1000
     print('running tester...')
     do_make()
     #seq_test(nps)
     tests = {} # map: cores -> chunks -> test
     cores = [2, 4, 8, 12, 16]
-    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 166, 250]
+    #chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 90, 120, 166, 250]
+    chunks = [2, 4, 8, 12, 16, 20, 25, 35, 45, 60, 75, 100, 150, 200, 250, 333, 400]
     stat = {}
+    totals = {}
     for c in tqdm(cores, desc='cores'):
         tests[c] = {}
         stat[c] = {}
+        totals[c] = {}
         for chks in tqdm(chunks, desc='chunks'):
             tests[c][chks] = []
+            tot = []
             for i in range(NUM_TESTS):
-                tests[c][chks].append(run_test(nps, chks, c))
+                real, total = run_test(nps, chks, c)
+                tests[c][chks].append(real)
+                tot.append(total)
             stat[c][chks] = (statistics.mean(tests[c][chks]),
                              statistics.stdev(tests[c][chks]))
+            totals[c][chks] = (statistics.mean(tot),
+                               statistics.stdev(tot))
 
+    totsave = json.dumps(totals)
     tsave = json.dumps(tests)
     ssave = json.dumps(stat)
-    with open("test2.json","w") as f:
+    timestr = time.strftime("%Y%m%d-%H-%M-%S")
+    with open("test-" + timestr + ".json","w") as f:
         f.write(tsave)
-    with open("stat2.json","w") as f:
+    with open("stat-" + timestr + ".json","w") as f:
         f.write(ssave)
+    with open("total-" + timestr + ".json","w") as f:
+        f.write(totsave)
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -22,7 +22,7 @@ main :: IO ()
 main = do
   args <- getArgs
   case args of
-    -- need more elegant way of doing this..
+    -- just doing simple parsing for now
     [] -> guiMain num_points iter chunks
     ["-t"] -> cliMainPar num_points chunks iter
     ["-t", "-n", n, "-c", c] -> cliMainPar (read n) (read c) iter
@@ -43,24 +43,18 @@ usage = do pn <- getProgName
              " [-ts] [-n <number particles>] [-i <number iterations>]" ++
              " [-c <number of chunks>]"
 
-
 cliMain :: ([Particle] -> [Particle]) -> Int -> Int -> Int -> IO ()
 cliMain f nps chks iters = do
   particles <- simInit nps iters chks
   let sol = iterate f particles !! iters
   sol `deepseq` putStrLn "Done."
 
--- cliMainSeq :: Int -> Int -> IO ()
--- cliMainSeq nps iters = do
---   particles <- simInit nps iters
---   let sol = iterate supdate particles !! iters
---   sol `deepseq` putStrLn "Done."
-
 guiMain :: Int -> Int -> Int -> IO ()
 guiMain nps iters chks = do
   (_progName, _args) <- getArgsAndInitialize
   initialDisplayMode $= [DoubleBuffered] -- unused: RGBMode, WithDepthBuffer
-  initialWindowSize $= Size (fromIntegral window_width) (fromIntegral window_height)
+  initialWindowSize $=
+    Size (fromIntegral window_width) (fromIntegral window_height)
   _window <- createWindow "SPH"
   reshapeCallback $= Just reshape
   init_
@@ -105,7 +99,8 @@ keyboard key keyState _ _ = do
 initPoints :: [Double] -> [(Double, Double)]
 initPoints jitters = zipWith (\(x, y) j -> (x+j, y)) makePoints jitters
   where makePoints :: [(Double, Double)]
-        makePoints = [(x, y) | y <- [view_width/4, view_width/4 + h..view_height-eps*2],
+        makePoints = [(x, y) | y <- [view_width/4, view_width/4
+                                     + h..view_height-eps*2],
                                x <- [eps, eps+h..view_width/2]]
 
 makeParticles :: [(Double, Double)] -> [Particle]
