@@ -24,27 +24,37 @@ def plotter(stats):
 
 def combined_plotter(stats):
     plt.figure(figsize=size)
-    plt.title("multi-core SPH".format(core))
+    plt.title("Multi-core SPH")
     for core, stat in stats.items():
         cleanstat = {int(k):v for k,v in stat.items()}
         ls = sorted(cleanstat.items())
         x, y = zip(*ls)
         y = [i[0] for i in y]
         plt.plot(x, y)
+    px = [45, 90, 150, 175, 150]
+    py = [14.904, 10.39, 8.106, 6.638, 5.816]
+    plt.scatter(px, py, marker="x", color="r")
+    plt.legend(["2-core", "3-core", "4-core", "5-core", "6-core"])
+    plt.xlabel("chunks")
+    plt.ylabel("runtime (s)")
     plt.show()
 
 def plot_totals(totals, keys):
     tot_runtime = [29.85]
+    plt.figure(figsize=size)
+    plt.title("Multi-core SPH Total Runtime")
     for core, tot in totals.items():
         cleantot = {int(k):v for k,v in tot.items()}
-        plt.figure(figsize=size)
-        plt.title("{}-core SPH".format(core))
         ls = sorted(cleantot.items())
         x, y = zip(*ls)
         y = [i[0] for i in y]
         plt.plot(x, y)
-        plt.show()
         tot_runtime.append(cleantot[keys[core]][0])
+
+    plt.xlabel("chunks")
+    plt.ylabel("total (user+sys) runtime (s)")
+    plt.legend(["2-core", "3-core", "4-core", "5-core", "6-core"])
+    plt.show()
     return tot_runtime
 
 def get_stats(stats):
@@ -91,13 +101,16 @@ def overall_plot(speedups, runtimes, tot_runtimes):
     plt.title('Cores vs. Runtime')
     plt.xlabel('cores')
     plt.ylabel('runtime (s)')
-    plt.plot(cores, runtimes)
+    plt.plot(cores, runtimes, marker="+")
+    plt.plot(cores, [runtimes[0]/c for c in cores])
+    plt.legend(["Empirical", "Ideal"])
     plt.show()
 
 def main():
     with open("stat3.json") as f:
         stats = json.load(f)
         plotter(stats)
+        combined_plotter(stats)
         speedups, runtimes, keys = get_stats(stats)
 
     with open("tots3.json") as f:
