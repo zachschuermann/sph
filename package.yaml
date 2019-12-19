@@ -1,5 +1,5 @@
 name:                sph
-version:             0.1.0
+version:             1.0.0
 github:              "schuermannator/sph"
 license:             BSD3
 author:              "Zach Schuermann"
@@ -31,7 +31,7 @@ library:
   source-dirs: src
 
 executables:
-  sph-exe:
+  sph:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

@@ -12,13 +12,13 @@ make run
 Using stack: 
 ``` bash
 stack build
-stack exec sph-exe
+stack exec sph
 ```
 or
 ``` bash
 stack install
-sph-exe -t -n 1000 -c 150 +RTS -N8 -s
-sph-exe --help #print usage
+sph -t -n 1000 -c 150 +RTS -N8 -s
+sph --help #print usage
 ```
 
 
